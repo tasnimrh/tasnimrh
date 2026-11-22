@@ -172,7 +172,7 @@ def hero(theme):
     for r in range(rows):
         css += f".r{r}{{animation:f .35s ease-out {0.2 + r * 0.03:.2f}s both}}"
     s = Svg(h, theme, "Tasnim Hassan, analytics and AI",
-            "Analytics and AI, grounded in four years of corporate finance. MMA candidate at McGill Desautels, "
+            "Four years in corporate finance, now in analytics and AI. MMA candidate at McGill Desautels, "
             "GPA 4.0. Previously Informa, Assembly Global and KPMG in London. The panel shows 1,600 real orders "
             "from the Olist test set sorted by predicted late-delivery risk: reviewing the riskiest 10% catches "
             "23 of the 65 late orders in this sample.", css)
@@ -181,8 +181,8 @@ def hero(theme):
     s.raw(f'<circle class="lv" cx="4" cy="22" r="3.5" fill="{s.c("accent")}"/>')
     s.text("M", "open to roles  /  montreal, canada", 16, 26, 11.5, "muted")
     s.text("D", "Tasnim Hassan", -3, 98, 58, track=-0.035)
-    s.text("L", "Analytics and AI, grounded in", 0, 146, 23, track=-0.015)
-    s.text("L", "four years of corporate finance.", 0, 175, 23, "muted", track=-0.015)
+    s.text("L", "Four years in corporate finance,", 0, 146, 23, track=-0.015)
+    s.text("L", "now in analytics and AI.", 0, 175, 23, "muted", track=-0.015)
     s.text("L", "MMA candidate at McGill Desautels, GPA 4.0.", 0, 218, 14.5, "muted")
     s.text("L", "Previously Informa, Assembly Global and KPMG, London.", 0, 240, 14.5, "muted")
 

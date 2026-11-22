@@ -1,6 +1,6 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
-  <img src="assets/hero-light.svg" width="100%" alt="Tasnim Hassan. Analytics and AI, grounded in four years of corporate finance. MMA candidate at McGill Desautels, GPA 4.0. Previously Informa, Assembly Global and KPMG in London. The panel shows 1,600 real orders from the Olist test set sorted by predicted late-delivery risk.">
+  <img src="assets/hero-light.svg" width="100%" alt="Tasnim Hassan. Four years in corporate finance, now in analytics and AI. MMA candidate at McGill Desautels, GPA 4.0. Previously Informa, Assembly Global and KPMG in London. The panel shows 1,600 real orders from the Olist test set sorted by predicted late-delivery risk.">
 </picture>
 
 [Portfolio](https://tasnimrh.github.io) | [LinkedIn](https://www.linkedin.com/in/tasnimhassan/) | [Email](mailto:tasnim.hassan@mail.mcgill.ca) | [Resume](https://tasnimrh.github.io/Tasnim_Hassan_Resume.pdf)
