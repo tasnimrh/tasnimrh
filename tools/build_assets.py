@@ -6,7 +6,7 @@ GitHub shows README SVGs through an <img> tag, which cannot load web fonts, so e
 piece of text is converted to vector outlines. Each asset is written in a light and a
 dark version with a transparent background, so it sits on the page in either theme.
 
-The order field and the review-budget chart are drawn from real results: the locked
+The review-budget chart is drawn from real results: the locked
 final model from the Olist project, scored on the held-out test set (olist-curve.json,
 olist_sample.json, exported from notebook 05).
 """
@@ -31,6 +31,7 @@ GF = "https://raw.githubusercontent.com/google/fonts/main/ofl/"
 FONT_URLS = {
     "Geist.ttf": GF + "geist/Geist%5Bwght%5D.ttf",
     "GeistMono.ttf": GF + "geistmono/GeistMono%5Bwght%5D.ttf",
+    "InstrumentSerif.ttf": GF + "instrumentserif/InstrumentSerif-Regular.ttf",
 }
 for _name, _url in FONT_URLS.items():
     _path = os.path.join(CACHE, _name)
@@ -56,7 +57,9 @@ class Face:
     def __init__(self, key, file, **axes):
         self.key = key
         path = os.path.join(CACHE, key + ".ttf")
-        tt = instancer.instantiateVariableFont(TTFont(os.path.join(CACHE, file)), axes)
+        tt = TTFont(os.path.join(CACHE, file))
+        if axes:
+            tt = instancer.instantiateVariableFont(tt, axes)
         tt.save(path)
         self.tt = TTFont(path)
         self.gs = self.tt.getGlyphSet()
@@ -73,7 +76,7 @@ class Face:
 
 
 FACES = {
-    "D": Face("D", "Geist.ttf", wght=500),       # name
+    "D": Face("D", "InstrumentSerif.ttf"),       # name, matches the site
     "H": Face("H", "Geist.ttf", wght=560),       # titles
     "L": Face("L", "Geist.ttf", wght=400),       # tagline and prose
     "S": Face("S", "Geist.ttf", wght=560),       # prose, strong
@@ -162,75 +165,30 @@ def label(s, x, y, text, color="dim"):
 # ---------------------------------------------------------------- hero
 
 def hero(theme):
-    h = 392
-    rows, cols = 32, 50
-    css = ("@keyframes f{from{opacity:0}to{opacity:1}}"
-           "@keyframes b{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}"
-           "@keyframes p{0%,100%{opacity:1}50%{opacity:.25}}"
-           ".lv{animation:p 2.2s ease-in-out infinite}"
-           f".bd{{stroke-dasharray:1;stroke-dashoffset:1;animation:b .9s ease-out {0.25 + rows * 0.03:.2f}s forwards}}")
-    for r in range(rows):
-        css += f".r{r}{{animation:f .35s ease-out {0.2 + r * 0.03:.2f}s both}}"
+    h = 300
+    css = ("@keyframes p{0%,100%{opacity:1}50%{opacity:.25}}.lv{animation:p 2.2s ease-in-out infinite}"
+           "@keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}"
+           ".a1{animation:f .6s ease-out .1s both}.a2{animation:f .6s ease-out .35s both}"
+           ".a3{animation:f .6s ease-out .6s both}")
     s = Svg(h, theme, "Tasnim Hassan, analytics and AI",
             "Four years in corporate finance, now in analytics and AI. MMA candidate at McGill Desautels, "
-            "GPA 4.0. Previously Informa, Assembly Global and KPMG in London. The panel shows 1,600 real orders "
-            "from the Olist test set sorted by predicted late-delivery risk: reviewing the riskiest 10% catches "
-            "23 of the 65 late orders in this sample.", css)
-
-    # left column
+            "GPA 4.0. Previously Informa, Assembly Global and KPMG in London. Focus: commercial and financial "
+            "analytics, in-house or in consulting.", css)
     s.raw(f'<circle class="lv" cx="4" cy="22" r="3.5" fill="{s.c("accent")}"/>')
     s.text("M", "open to roles  /  montreal, canada", 16, 26, 11.5, "muted")
-    s.text("D", "Tasnim Hassan", -3, 98, 58, track=-0.035)
-    s.text("L", "Four years in corporate finance,", 0, 146, 23, track=-0.015)
-    s.text("L", "now in analytics and AI.", 0, 175, 23, "muted", track=-0.015)
-    s.text("L", "MMA candidate at McGill Desautels, GPA 4.0.", 0, 218, 14.5, "muted")
-    s.text("L", "Previously Informa, Assembly Global and KPMG, London.", 0, 240, 14.5, "muted")
+    # Animate wrapper groups: a CSS transform on the glyph group itself would replace its scale.
+    s.raw('<g class="a1">')
+    s.text("D", "Tasnim Hassan", -2, 120, 104, track=-0.02)
+    s.raw('</g><g class="a2">')
+    s.text("L", "Four years in corporate finance, now in analytics and AI.", 0, 168, 23, track=-0.015)
+    s.raw("</g>")
 
-    # right column: the order field, real test-set orders sorted by predicted risk
-    px, py, pw, ph = 556, 4, W - 556, 268
-    s.rect(px, py, pw, ph, 10, "soft")
-    label(s, px + 16, py + 24, "olist / test set / sorted by risk")
-    cell = (pw - 32) / cols
-    gx, gy = px + 16, py + 40
-    order = sorted(range(len(SAMPLE["p"])), key=lambda i: -SAMPLE["p"][i])
-    thr = SAMPLE["flagThreshold"]
-    flagged = sum(1 for p in SAMPLE["p"] if p >= thr)
-    rad = cell * 0.22
-    for r in range(rows):
-        s.raw(f'<g class="r{r}">')
-        for c in range(cols):
-            k = r * cols + c
-            if k >= len(order):
-                break
-            i = order[k]
-            x, y = gx + (c + 0.5) * cell, gy + (r + 0.5) * cell
-            late, flag = SAMPLE["late"][i] == 1, SAMPLE["p"][i] >= thr
-            if flag and late:
-                s.dot(x, y, rad * 1.7, "accent")
-            elif flag:
-                s.dot(x, y, rad * 1.45, "accent", hollow=True)
-            elif late:
-                s.dot(x, y, rad * 1.45, "miss")
-            else:
-                op = 0.28 + SAMPLE["p"][i] * 0.4
-                s.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{rad:.2f}" fill="{s.c("dim")}" opacity="{op:.2f}"/>')
-        s.raw("</g>")
-    band_rows = -(-flagged // cols)
-    s.raw(f'<rect class="bd" pathLength="1" x="{gx - 3:.1f}" y="{gy - 3:.1f}" width="{cols * cell + 6:.1f}" '
-          f'height="{band_rows * cell + 6:.1f}" rx="3" fill="none" stroke="{s.c("accent")}" stroke-width="1"/>')
-    late_n = sum(SAMPLE["late"])
-    caught = sum(1 for i, p in enumerate(SAMPLE["p"]) if p >= thr and SAMPLE["late"][i])
-    yb = gy + rows * cell + 22
-    s.text("M", "riskiest 10%", gx, yb, 11, "accent")
-    s.text("M", f"{caught} of {late_n} late orders caught", px + pw - 16, yb, 11, "muted", "end")
-
-    # first-glance ledger
-    y0 = 300
+    y0 = 204
     s.line(0, y0, W, y0, "ink", 1.2)
     cols3 = (0, 300, 600)
     rows3 = [("NOW", "McGill MMA, GPA 4.0", "Team lead, Novartis capstone"),
              ("BEFORE", "Finance Analyst, Informa", "Assembly Global, KPMG UK"),
-             ("FOCUS", "Data science, AI consulting", "Strategy, digital transformation")]
+             ("FOCUS", "Commercial and financial analytics", "Data science, in-house or consulting")]
     for x, (k, a, b) in zip(cols3, rows3):
         label(s, x, y0 + 24, k)
         s.text("S", a, x, y0 + 48, 14.5)
@@ -265,11 +223,11 @@ def olist(theme):
             ".dm{stroke-dasharray:1;stroke-dashoffset:1;animation:d 1.4s cubic-bezier(.3,.6,.2,1) .2s forwards}"
             "@keyframes f{from{opacity:0}to{opacity:1}}.fd{animation:f .5s ease-out 1.3s both}")
     frame(s, "01", "olist e-commerce, mcgill enterprise data science", "Late-delivery risk",
-          ["Ranks orders by their risk of arriving late,",
-           "using only what is known at approval, so",
-           "operations review the right orders first."],
+          ["Late orders earn 2.2 stars, on-time 4.3. Ranks",
+           "orders by late risk at approval, so operations",
+           "review the right ones before the customer is let down."],
           [("36.1%", "of late orders caught at a 10% budget"),
-           ("3.6x", "random review"),
+           ("6.8", "reviews per late order caught, 24 at random"),
            ("my part", "tuning, ensembles, final test")],
           "github.com/JustJay7/olist-late-delivery")
     # chart: share of late orders caught by review budget, test set
@@ -355,6 +313,53 @@ def skillguard(theme):
     return s.save(f"skillguard-{theme}.svg")
 
 
+def kafka(theme):
+    rows = [("Spark batch write", "3 / 3", "landed", "muted"),
+            ("Python producer, idempotent", "9 / 9", "landed", "muted"),
+            ("Spark Structured Streaming", "20 / 20", "landed", "muted"),
+            ("Duplicates by event id", "0", "pass", "accent"),
+            ("End-to-end check", "32 / 32", "pass", "accent")]
+    css = "@keyframes f{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}"
+    for i in range(len(rows)):
+        css += f".q{i}{{animation:f .35s ease-out {0.25 + i * 0.22:.2f}s both}}"
+    s = Svg(292, theme, "Streaming pipeline: Kafka to Spark",
+            "Rebuilt a 2022 Kafka and Spark course pipeline on Confluent Cloud and Databricks with a registered "
+            "Avro schema. Three producers sent 32 events; all 32 landed in Delta with zero duplicates.", css)
+    frame(s, "03", "mcgill enterprise ml in production, solo", "Kafka to Spark, verified",
+          ["A 2022 pipeline no longer ran on 2026 platforms.",
+           "Rebuilt it with an Avro contract and proved",
+           "every event arrived exactly once."],
+          [("32/32", "events landed from three producers"),
+           ("0", "duplicates, checked by event id"),
+           ("my part", "solo: code, cloud setup, verification")],
+          "github.com/tasnimrh/kafka-spark-streaming")
+    L, R = 430, W
+    s.rect(L, 14, R - L, 250, 10, "soft")
+    label(s, L + 16, 38, "verification run")
+    s.text("M", "confluent cloud to delta", R - 16, 38, 11, "dim", "end")
+    s.line(L, 52, R, 52, "rule", 1)
+    for i, (k, v, st, col) in enumerate(rows):
+        y = 86 + i * 38
+        s.raw(f'<g class="q{i}">')
+        kw = s.text("L", k, L + 16, y, 13.5, "ink")
+        vw = s.width("N", v, 12)
+        pw = s.width("M", st, 10.5) + 16
+        px = R - 16 - pw
+        vx = px - 12 - vw
+        s.line(L + 16 + kw + 8, y - 4, vx - 8, y - 4, "rule", 1, dash="1 4")
+        s.text("N", v, vx, y, 12, "accent" if col == "accent" else "ink")
+        if col == "accent":
+            s.raw(f'<rect x="{px:.1f}" y="{y - 15:.1f}" width="{pw:.1f}" height="20" rx="4" '
+                  f'fill="{s.c("accent")}" opacity=".14"/>')
+        else:
+            s.rect(px, y - 15, pw, 20, 4, "bg")
+        s.text("M", st, px + 8, y, 10.5, "accent" if col == "accent" else "muted")
+        s.raw("</g>")
+        if i < len(rows) - 1:
+            s.line(L + 16, y + 16, R - 16, y + 16, "rule", 1)
+    return s.save(f"kafka-{theme}.svg")
+
+
 # ---------------------------------------------------------------- toolkit
 
 TOOLKIT = [
@@ -381,5 +386,5 @@ def toolkit(theme):
 
 if __name__ == "__main__":
     for th in THEMES:
-        for fn in (hero, olist, skillguard, toolkit):
+        for fn in (hero, olist, skillguard, kafka, toolkit):
             print(fn.__name__, th, fn(th), "bytes")
