@@ -165,34 +165,66 @@ def label(s, x, y, text, color="dim"):
 # ---------------------------------------------------------------- hero
 
 def hero(theme):
-    h = 300
+    h = 340
+    # A rising dot series with a forecast tail; a brightness wave sweeps across the columns.
+    cols, rows_n = 24, 11
+    gx0, gx1, gy1 = 612, W - 4, 158
+    sp = (gx1 - gx0) / (cols - 1)
+    vals = [1.6 + c * 0.36 + 1.1 * __import__("math").sin(c / 2.4) for c in range(cols)]
     css = ("@keyframes p{0%,100%{opacity:1}50%{opacity:.25}}.lv{animation:p 2.2s ease-in-out infinite}"
            "@keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}"
            ".a1{animation:f .6s ease-out .1s both}.a2{animation:f .6s ease-out .35s both}"
-           ".a3{animation:f .6s ease-out .6s both}")
-    s = Svg(h, theme, "Tasnim Hassan, analytics and AI",
-            "Four years in corporate finance, now in analytics and AI. MMA candidate at McGill Desautels, "
-            "GPA 4.0. Previously Informa, Assembly Global and KPMG in London. Focus: commercial and financial "
-            "analytics, in-house or in consulting.", css)
+           ".a3{animation:f .6s ease-out .6s both}.a4{animation:f .6s ease-out .85s both}"
+           "@keyframes w{0%,100%{opacity:.35}12%{opacity:1}30%{opacity:.35}}.w{animation:w 3.2s ease-in-out infinite}")
+    s = Svg(h, theme, "Tasnim Hassan, data and AI",
+            "Tasnim Hassan builds data and AI systems and tests them on real data, with four years on the business "
+            "side of the numbers. 359,699 live posts streamed through Kafka and Databricks; 13 of 13 private-file "
+            "reads by an AI skill caught at runtime; 3.5 times fewer reviews per late order caught than random; "
+            "a 125 million pound plus revenue portfolio reported to a CFO. McGill MMA, Montreal.", css)
     s.raw(f'<circle class="lv" cx="4" cy="22" r="3.5" fill="{s.c("accent")}"/>')
-    s.text("M", "open to roles  /  montreal, canada", 16, 26, 11.5, "muted")
-    # Animate wrapper groups: a CSS transform on the glyph group itself would replace its scale.
+    s.text("M", "building in montreal  /  mcgill mma, gpa 4.0", 16, 26, 11.5, "muted")
     s.raw('<g class="a1">')
-    s.text("D", "Tasnim Hassan", -2, 120, 104, track=-0.02)
+    s.text("D", "Tasnim Hassan", -2, 120, 100, track=-0.02)
     s.raw('</g><g class="a2">')
-    s.text("L", "Four years in corporate finance, now in analytics and AI.", 0, 168, 23, track=-0.015)
+    s.text("H", "Data and AI systems, tested on real data.", 0, 166, 24, track=-0.025)
+    s.raw('</g><g class="a3">')
+    s.text("L", "Built by someone who spent four years on the business side of the numbers.", 0, 194, 16, "muted",
+           track=-0.01)
     s.raw("</g>")
+    # signal: columns of dots, the last six a forecast
+    for c in range(cols):
+        x = gx0 + c * sp
+        n = max(1, min(rows_n, round(vals[c])))
+        fc = c >= cols - 6
+        s.raw(f'<g class="w" style="animation-delay:{c * 0.09:.2f}s">')
+        for r in range(n):
+            y = gy1 - r * sp
+            top = r == n - 1
+            if fc:
+                s.dot(x, y, 2.3 if top else 1.7, "accent", hollow=False)
+            else:
+                s.dot(x, y, 2.1 if top else 1.6, "ink" if top else "dim")
+        s.raw("</g>")
+    s.line(gx0 + (cols - 6.5) * sp, gy1 + 10, gx0 + (cols - 6.5) * sp, gy1 - rows_n * sp, "dim", 1, dash="2 3")
+    s.text("M", "now", gx0 + (cols - 6.5) * sp, gy1 + 24, 10, "dim", "middle")
 
-    y0 = 204
+    # proof band
+    y0 = 232
     s.line(0, y0, W, y0, "ink", 1.2)
-    cols3 = (0, 300, 600)
-    rows3 = [("NOW", "McGill MMA, GPA 4.0", "Team lead, Novartis capstone"),
-             ("BEFORE", "Finance Analyst, Informa", "Assembly Global, KPMG UK"),
-             ("FOCUS", "Commercial and financial analytics", "Data science, in-house or consulting")]
-    for x, (k, a, b) in zip(cols3, rows3):
-        label(s, x, y0 + 24, k)
-        s.text("S", a, x, y0 + 48, 14.5)
-        s.text("L", b, x, y0 + 69, 13.5, "muted")
+    band = [("359,699", "live posts streamed through", "Kafka and Databricks"),
+            ("13/13", "file reads an AI skill hid,", "caught at runtime"),
+            ("3.5x", "fewer reviews per late order", "caught than at random"),
+            ("£125M+", "revenue portfolio I reported", "on to a CFO")]
+    cw = W / 4
+    s.raw('<g class="a4">')
+    for i, (v, l1, l2) in enumerate(band):
+        x = i * cw + (0 if i == 0 else 18)
+        if i:
+            s.line(i * cw, y0 + 16, i * cw, h - 10, "rule", 1)
+        s.text("N", v, x, y0 + 46, 27, "accent" if i == 0 else "ink", track=-0.03)
+        s.text("L", l1, x, y0 + 74, 13, "muted")
+        s.text("L", l2, x, y0 + 93, 13, "muted")
+    s.raw("</g>")
     return s.save(f"hero-{theme}.svg")
 
 
@@ -214,6 +246,52 @@ def frame(s, idx, ctx, title, desc, facts, url):
     s.text("M", url, 0, s.h - 14, 11, "dim")
 
 
+def brandpulse(theme):
+    css = ("@keyframes g{from{transform:scaleX(0)}to{transform:scaleX(1)}}"
+           ".bar{transform-box:fill-box;transform-origin:left center}"
+           "@keyframes f{from{opacity:0}to{opacity:1}}")
+    stages = [("matched a brand", 2668, "dim", "first run"),
+              ("a link is not a mention", 1824, "ink", "-844"),
+              ("bots and ads removed", 1521, "accent", "-303")]
+    for i in range(len(stages)):
+        css += f".b{i}{{animation:g .8s cubic-bezier(.2,.7,.2,1) {0.3 + i * 0.35:.2f}s both}}"
+        css += f".t{i}{{animation:f .4s ease-out {0.5 + i * 0.35:.2f}s both}}"
+    s = Svg(292, theme, "Brand Pulse",
+            "Streams every public Bluesky post through Kafka into Databricks and flags brands having a bad day. "
+            "In one evening, 359,699 posts produced 2,668 brand matches. Ignoring links cut that to 1,824 and "
+            "removed a false alert; filtering bots and ads left 1,521 real mentions.", css)
+    frame(s, "01", "personal project, live data", "Brand Pulse",
+          ["Streams every public Bluesky post through Kafka",
+           "into Databricks and flags brands having a bad day.",
+           "Then live data broke it three ways. Each fix is measured."],
+          [("359,699", "posts streamed live in one evening"),
+           ("17%", "of brand mentions were bots or ads"),
+           ("my part", "solo: producer, pipeline, detection, tests")],
+          "github.com/tasnimrh/brand-pulse")
+    L, R = 430, W
+    s.rect(L, 14, R - L, 250, 10, "soft")
+    label(s, L + 16, 38, "first live run")
+    s.text("M", "bluesky to kafka to delta", R - 16, 38, 11, "dim", "end")
+    s.line(L, 52, R, 52, "rule", 1)
+    s.text("L", "posts streamed", L + 16, 80, 13.5)
+    s.text("N", "359,699", R - 16, 80, 12, "ink", "end")
+    bw = R - L - 32
+    for i, (k, v, col, note) in enumerate(stages):
+        y = 112 + i * 44
+        s.raw(f'<g class="t{i}">')
+        s.text("L", k, L + 16, y, 13.5, "ink" if i else "muted")
+        s.text("N", f"{v:,}", R - 16, y, 12, "accent" if col == "accent" else "ink", "end")
+        nw = s.width("N", f"{v:,}", 12)
+        s.text("M", note, R - 16 - nw - 10, y, 10.5, "miss" if note.startswith("-") else "dim", "end")
+        s.raw("</g>")
+        s.raw(f'<rect class="bar b{i}" x="{L + 16}" y="{y + 9}" width="{bw * v / 2668:.1f}" height="6" rx="3" '
+              f'fill="{s.c(col)}" opacity="{0.9 if col == "accent" else 0.55}"/>')
+    s.line(L + 16, 238, R - 16, 238, "rule", 1)
+    s.text("M", "false alerts after the link rule", L + 16, 256, 11, "muted")
+    s.text("N", "1 to 0", R - 16, 256, 11.5, "accent", "end")
+    return s.save(f"brandpulse-{theme}.svg")
+
+
 def olist(theme):
     s = Svg(292, theme, "Late-delivery risk at order approval",
             "A model that ranks e-commerce orders by their risk of arriving late, using only what is known when "
@@ -221,7 +299,7 @@ def olist(theme):
             "of late deliveries. The panel shows 1,600 real test-set orders sorted by predicted risk.",
             "@keyframes f{from{opacity:0}to{opacity:1}}"
             + "".join(f".r{r}{{animation:f .35s ease-out {0.2 + r * 0.03:.2f}s both}}" for r in range(40)))
-    frame(s, "01", "olist e-commerce, mcgill enterprise data science", "Late-delivery risk",
+    frame(s, "03", "olist e-commerce, mcgill enterprise data science", "Late-delivery risk",
           ["Late orders earn 2.2 stars, on-time 4.3. Ranks",
            "orders by late risk at approval, so operations",
            "review the right ones before the customer is let down."],
@@ -369,17 +447,20 @@ def kafka(theme):
 # ---------------------------------------------------------------- toolkit
 
 TOOLKIT = [
-    ("Data and ML", ["Python", "pandas", "NumPy", "scikit-learn", "R", "SQL"]),
-    ("Data platforms", ["Spark", "Kafka", "Databricks"]),
-    ("BI and reporting", ["Power BI", "Tableau", "Advanced Excel"]),
-    ("Finance systems", ["SAP", "TM1", "Salesforce", "Sage"]),
-    ("Tooling", ["Docker", "Git", "Matplotlib", "Seaborn"]),
+    ("AI and ML", ["Python", "scikit-learn", "pandas", "NumPy", "LLM APIs", "R"]),
+    ("Data engineering", ["Spark", "Kafka", "Databricks", "Delta Lake", "Avro", "SQL"]),
+    ("Cloud and tooling", ["AWS", "Confluent Cloud", "Docker", "Git"]),
+    ("Analytics and BI", ["Power BI", "Tableau", "Matplotlib", "Excel"]),
+    ("Business systems", ["SAP", "TM1", "Salesforce"]),
 ]
+CREDENTIALS = "Databricks Fundamentals  /  AWS Cloud Practitioner Essentials"
 
 
 def toolkit(theme):
     n = max(len(v) for _, v in TOOLKIT)
-    s = Svg(54 + n * 22, theme, "Toolkit", ". ".join(f"{k}: {', '.join(v)}" for k, v in TOOLKIT) + ".")
+    h = 54 + n * 22 + 44
+    s = Svg(h, theme, "Toolkit",
+            ". ".join(f"{k}: {', '.join(v)}" for k, v in TOOLKIT) + ". Credentials: " + CREDENTIALS + ".")
     cw = W / len(TOOLKIT)
     s.line(0, 1, W, 1, "rule", 1)
     for i, (head, items) in enumerate(TOOLKIT):
@@ -387,10 +468,14 @@ def toolkit(theme):
         s.text("S", head, x, 28, 14)
         for j, it in enumerate(items):
             s.text("M", it, x, 56 + j * 22, 12, "muted")
+    y = 54 + n * 22 + 6
+    s.line(0, y, W, y, "rule", 1)
+    w = s.text("M", "credentials", 0, y + 26, 11, "dim")
+    s.text("M", CREDENTIALS, w + 16, y + 26, 12, "ink")
     return s.save(f"toolkit-{theme}.svg")
 
 
 if __name__ == "__main__":
     for th in THEMES:
-        for fn in (hero, olist, skillguard, kafka, toolkit):
+        for fn in (hero, brandpulse, skillguard, olist, toolkit):
             print(fn.__name__, th, fn(th), "bytes")
