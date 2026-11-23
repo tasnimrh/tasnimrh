@@ -10,11 +10,11 @@
 <a href="https://tasnimrh.github.io/work/brand-pulse/">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/brandpulse-dark.svg">
-    <img src="assets/brandpulse-light.svg" width="100%" alt="Brand Pulse: streams every public Bluesky post through Kafka into Databricks and flags brands having a bad day. In one evening, 359,699 posts gave 2,668 brand matches; ignoring links cut that to 1,824 and removed a false alert; removing bots and ads left 1,521 real mentions.">
+    <img src="assets/brandpulse-light.svg" width="100%" alt="Brand Pulse: most brand-sentiment demos count mentions and stop; this one streams live Bluesky posts through Kafka into Databricks and audits every alert. In one evening, 359,699 posts gave 2,668 brand matches; ignoring links cut that to 1,824 and removed a false alert; removing bots and ads left 1,521 real mentions.">
   </picture>
 </a>
 
-[Code](https://github.com/tasnimrh/brand-pulse) · [Case study](https://tasnimrh.github.io/work/brand-pulse/) · Kafka, Avro, PySpark, Databricks, Delta Lake · solo
+[Code](https://github.com/tasnimrh/brand-pulse) · [How it differs](https://github.com/tasnimrh/brand-pulse#how-this-differs-from-the-usual-version) · [Case study](https://tasnimrh.github.io/work/brand-pulse/) · Kafka, Avro, PySpark, Databricks, Delta Lake · solo
 
 <a href="https://tasnimrh.github.io/work/skillguard/">
   <picture>

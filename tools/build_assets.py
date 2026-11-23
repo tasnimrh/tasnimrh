@@ -257,13 +257,13 @@ def brandpulse(theme):
         css += f".b{i}{{animation:g .8s cubic-bezier(.2,.7,.2,1) {0.3 + i * 0.35:.2f}s both}}"
         css += f".t{i}{{animation:f .4s ease-out {0.5 + i * 0.35:.2f}s both}}"
     s = Svg(292, theme, "Brand Pulse",
-            "Streams every public Bluesky post through Kafka into Databricks and flags brands having a bad day. "
+            "Most brand-sentiment demos count mentions and stop; this one streams live Bluesky posts through Kafka into Databricks and audits every alert. "
             "In one evening, 359,699 posts produced 2,668 brand matches. Ignoring links cut that to 1,824 and "
             "removed a false alert; filtering bots and ads left 1,521 real mentions.", css)
     frame(s, "01", "personal project, live data", "Brand Pulse",
-          ["Streams every public Bluesky post through Kafka",
-           "into Databricks and flags brands having a bad day.",
-           "Then live data broke it three ways. Each fix is measured."],
+          ["Most brand-sentiment demos count mentions and stop.",
+           "This one streams live Bluesky posts through Kafka into",
+           "Databricks and audits every alert before trusting it."],
           [("359,699", "posts streamed live in one evening"),
            ("17%", "of brand mentions were bots or ads"),
            ("my part", "solo: producer, pipeline, detection, tests")],
