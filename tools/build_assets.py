@@ -218,10 +218,9 @@ def olist(theme):
     s = Svg(292, theme, "Late-delivery risk at order approval",
             "A model that ranks e-commerce orders by their risk of arriving late, using only what is known when "
             "the order is approved. On the held-out test set, reviewing the riskiest 10% of orders catches 36.1% "
-            "of late deliveries, against 33.6% for a two-feature baseline and 10.2% for random review.",
-            "@keyframes d{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}"
-            ".dm{stroke-dasharray:1;stroke-dashoffset:1;animation:d 1.4s cubic-bezier(.3,.6,.2,1) .2s forwards}"
-            "@keyframes f{from{opacity:0}to{opacity:1}}.fd{animation:f .5s ease-out 1.3s both}")
+            "of late deliveries. The panel shows 1,600 real test-set orders sorted by predicted risk.",
+            "@keyframes f{from{opacity:0}to{opacity:1}}"
+            + "".join(f".r{r}{{animation:f .35s ease-out {0.2 + r * 0.03:.2f}s both}}" for r in range(40)))
     frame(s, "01", "olist e-commerce, mcgill enterprise data science", "Late-delivery risk",
           ["Late orders earn 2.2 stars, on-time 4.3. Ranks",
            "orders by late risk at approval, so operations",
@@ -230,37 +229,44 @@ def olist(theme):
            ("6.8", "reviews per late order caught, 24 at random"),
            ("my part", "tuning, ensembles, final test")],
           "github.com/JustJay7/olist-late-delivery")
-    # chart: share of late orders caught by review budget, test set
-    L, R, T, B = 470, W - 14, 62, 238
-    xs = lambda b: L + (b - 1) / 49 * (R - L)
-    ys = lambda v: B - v * (B - T)
-    label(s, 430, 30, "late orders caught, by review budget")
-    for v in (0, 0.5, 1):
-        s.line(L, ys(v), R, ys(v), "rule", 1, dash=None if v == 0 else "1 4")
-        s.text("M", f"{int(v * 100)}%", L - 10, ys(v) + 4, 10.5, "dim", "end")
-    for b in (1, 10, 25, 50):
-        s.text("M", f"{b}%", xs(b), B + 20, 10.5, "dim", "end" if b == 50 else "middle")
-    path = lambda ser: "M" + "L".join(f"{xs(i + 1):.1f} {ys(v):.1f}" for i, v in enumerate(ser))
-    S = CURVE["series"]
-    s.raw(f'<path d="{path(S["random"])}" fill="none" stroke="{s.c("dim")}" stroke-width="1.4" stroke-dasharray="2 4"/>')
-    s.raw(f'<path d="{path(S["b1"])}" fill="none" stroke="{s.c("warn")}" stroke-width="1.4" stroke-dasharray="5 4"/>')
-    s.raw(f'<path class="dm" pathLength="1" d="{path(S["model"])}" fill="none" stroke="{s.c("accent")}" '
-          f'stroke-width="2.4" stroke-linejoin="round"/>')
-    x10 = xs(10)
-    s.line(x10, T - 6, x10, B, "muted", 1, dash="2 3")
-    s.raw('<g class="fd">')
-    for key, col in (("model", "accent"), ("b1", "warn"), ("random", "dim")):
-        v = S[key][9]
-        s.dot(x10, ys(v), 3.6 if key == "model" else 3, col)
-    rows = [("final model", S["model"][9], "accent"), ("two-feature", S["b1"][9], "warn"),
-            ("random", S["random"][9], "dim")]
-    tx = x10 + 16
-    for j, (name, v, col) in enumerate(rows):
-        yy = 84 + j * 18
-        s.text("N", f"{v * 100:.1f}%", tx, yy, 11.5, col)
-        s.text("M", name, tx + 52, yy, 11, "muted")
-    s.text("M", "at 10%", x10, T - 12, 10.5, "muted", "middle")
-    s.raw("</g>")
+    # The order field: 1,600 real test-set orders sorted by predicted risk, riskiest first.
+    L, R, T = 430, W, 14
+    s.rect(L, T, R - L, 262, 10, "soft")
+    label(s, L + 16, T + 24, "olist / test set / sorted by predicted risk")
+    cols = 64
+    cell = (R - L - 32) / cols
+    gx, gy = L + 16, T + 40
+    order = sorted(range(len(SAMPLE["p"])), key=lambda i: -SAMPLE["p"][i])
+    thr = SAMPLE["flagThreshold"]
+    rows = -(-len(order) // cols)
+    rad = cell * 0.22
+    for r in range(rows):
+        s.raw(f'<g class="r{r}">')
+        for c in range(cols):
+            k = r * cols + c
+            if k >= len(order):
+                break
+            i = order[k]
+            x, y = gx + (c + 0.5) * cell, gy + (r + 0.5) * cell
+            late, flag = SAMPLE["late"][i] == 1, SAMPLE["p"][i] >= thr
+            if flag and late:
+                s.dot(x, y, rad * 1.7, "accent")
+            elif flag:
+                s.dot(x, y, rad * 1.45, "accent", hollow=True)
+            elif late:
+                s.dot(x, y, rad * 1.45, "miss")
+            else:
+                s.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{rad:.2f}" fill="{s.c("dim")}" opacity="{0.28 + SAMPLE["p"][i] * 0.4:.2f}"/>')
+        s.raw("</g>")
+    flagged = sum(1 for p in SAMPLE["p"] if p >= thr)
+    band_rows = -(-flagged // cols)
+    s.raw(f'<rect x="{gx - 3:.1f}" y="{gy - 3:.1f}" width="{cols * cell + 6:.1f}" height="{band_rows * cell + 6:.1f}" '
+          f'rx="3" fill="none" stroke="{s.c("accent")}" stroke-width="1" stroke-dasharray="3 3"/>')
+    late_n = sum(SAMPLE["late"])
+    caught = sum(1 for i, p in enumerate(SAMPLE["p"]) if p >= thr and SAMPLE["late"][i])
+    yb = gy + rows * cell + 22
+    s.text("M", "boxed: riskiest 10%", gx, yb, 11, "accent")
+    s.text("M", f"{caught} of {late_n} late orders caught", R - 16, yb, 11, "muted", "end")
     return s.save(f"olist-{theme}.svg")
 
 
