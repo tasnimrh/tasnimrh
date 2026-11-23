@@ -47,7 +47,7 @@
 
 ### Experience and education
 
-- **Informa Connect**, London: Finance Analyst, Interim Business Controller and Graduate Finance Analyst (2022 to 2025). Month-end reporting for a £70M portfolio, a 3-day IFRS close for a £30M unit, forecast accuracy up 15%.
+- **Informa Connect**, London: Finance Analyst, Interim Business Controller and Graduate Finance Analyst (2022 to 2025). Month-end reporting for a £125M+ revenue portfolio, a 3-day IFRS close for a £30M unit, forecast accuracy up 15%.
 - **Assembly Global (Stagwell)**, London: Finance Associate (2022)
 - **KPMG UK**, London: Consulting Summer Intern (2021)
 - **McGill University**, Master of Management in Analytics (2026 to 2027), GPA 4.0
